@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哭離怕 - Discord 可愛機器人</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-image: url("background.gif");
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #ffffff;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        /* ========== MC 讀取畫面 ========== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #5a3a1a;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(0,0,0,0.1) 15px, rgba(0,0,0,0.1) 16px),
+                repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(0,0,0,0.1) 15px, rgba(0,0,0,0.1) 16px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-title {
+            font-size: 1.5em;
+            color: #ffffff;
+            text-shadow: 3px 3px 0 #3a2a0a;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            animation: titlePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .loading-bar-outer {
+            width: 260px;
+            height: 36px;
+            background: #3b2f1e;
+            border: 3px solid #1a0f00;
+            box-shadow: 
+                inset 3px 3px 0 #5a4a2e,
+                inset -3px -3px 0 #1a0f00;
+            padding: 4px;
+            image-rendering: pixelated;
+        }
+
+        .loading-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: #8b6914;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.15) 6px, rgba(0,0,0,0.15) 8px);
+            border: 2px solid #5c420e;
+            box-shadow: inset 2px 2px 0 #a8842a;
+            animation: fillBar 2.5s ease-in-out forwards;
+        }
+
+        @keyframes fillBar {
+            0% { width: 0%; }
+            20% { width: 25%; }
+            40% { width: 45%; }
+            60% { width: 65%; }
+            80% { width: 85%; }
+            95% { width: 98%; }
+            100% { width: 100%; }
+        }
+
+        .loading-tip {
+            color: #ffe08a;
+            font-size: 0.85em;
+            margin-top: 18px;
+            letter-spacing: 2px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .loading-dirt {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #8b6914;
+            border: 2px solid #3b2f1e;
+            box-shadow: inset 2px 2px 0 #a8842a;
+            image-rendering: pixelated;
+        }
+
+        .dirt-1 { top: 15%; left: 12%; animation: floatDirt 3s ease-in-out infinite; }
+        .dirt-2 { top: 20%; right: 15%; animation: floatDirt 3.5s ease-in-out infinite reverse; }
+        .dirt-3 { bottom: 25%; left: 18%; animation: floatDirt 2.8s ease-in-out infinite 0.5s; }
+        .dirt-4 { bottom: 18%; right: 12%; animation: floatDirt 3.2s ease-in-out infinite 0.8s; }
+
+        @keyframes floatDirt {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(90deg); }
+        }
+
+        /* ========== MC 風格區塊 ========== */
+        .mc-block {
+            background: rgba(200, 184, 154, 0.92);
+            border: 3px solid #3b2f1e;
+            box-shadow: 
+                inset 3px 3px 0 #e0d5c0,
+                inset -3px -3px 0 #8b7a5e;
+            padding: 20px;
+            margin: 16px 0;
+            color: #3b2f1e;
+        }
+
+        .hero-block {
+            background: rgba(126, 200, 80, 0.92);
+            border: 4px solid #3b2f1e;
+            box-shadow: 
+                inset 4px 4px 0 #9ae065,
+                inset -4px -4px 0 #4a7a2e;
+            text-align: center;
+            padding: 28px 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero-block h1 {
+            font-size: 2em;
+            color: #ffffff;
+            text-shadow: 3px 3px 0 #3a5a2f;
+            letter-spacing: 4px;
+        }
+
+        .hero-block .subtitle {
+            color: #1a3a0a;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .creeper-face {
+            font-size: 4em;
+            display: block;
+            margin-bottom: 8px;
+            filter: drop-shadow(3px 3px 0 #3a5a2f);
+        }
+
+        .crafting-card {
+            background: rgba(200, 184, 154, 0.92);
+            border: 3px solid #3b2f1e;
+            box-shadow: 
+                inset 3px 3px 0 #e0d5c0,
+                inset -3px -3px 0 #8b7a5e;
+            padding: 18px;
+            margin: 14px 0;
+        }
+
+        .crafting-card h2 {
+            font-size: 1.1em;
+            border-bottom: 3px solid #3b2f1e;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            color: #3b2f1e;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .inv-slot {
+            background: #8b8b8b;
+            border: 3px solid #3b2f1e;
+            box-shadow: inset 2px 2px 0 #b0b0b0, inset -2px -2px 0 #5a5a5a;
+            padding: 12px;
+            text-align: center;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #3b2f1e;
+            transition: transform 0.1s;
+        }
+
+        .inv-slot:hover {
+            transform: scale(1.04);
+            background: #a0a0a0;
+        }
+
+        .inv-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ========== 指令表格 ========== */
+        .cmd-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+        }
+
+        .cmd-table th {
+            background: #3b2f1e;
+            color: #ffe08a;
+            padding: 10px 12px;
+            border: 2px solid #1a0f00;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
+        .cmd-table td {
+            background: #8b8b8b;
+            color: #ffffff;
+            padding: 10px 12px;
+            border: 2px solid #3b2f1e;
+            font-family: "Courier New", monospace;
+            font-size: 0.85em;
+            text-shadow: 1px 1px 0 #3b2f1e;
+        }
+
+        .cmd-table .cmd-name {
+            color: #7ec850;
+            font-weight: bold;
+        }
+
+        .perm-badge {
+            background: #7ec850;
+            color: #1a3a0a;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .perm-badge.admin {
+            background: #e8a850;
+            color: #ffffff;
+        }
+
+        .perm-badge.auto {
+            background: #a0a0ff;
+            color: #ffffff;
+        }
+
+        .chat-box {
+            background: #2b1f0e;
+            border: 3px solid #3b2f1e;
+            box-shadow: inset 2px 2px 0 #5a4a2e, inset -2px -2px 0 #1a0f00;
+            padding: 14px;
+            margin: 10px 0;
+            color: #ffffff;
+            font-family: "Courier New", monospace;
+            font-size: 0.85em;
+        }
+
+        .chat-box .player-name { color: #ffe08a; }
+        .chat-box .bot-name { color: #7ec850; }
+
+        .btn-mc {
+            display: block;
+            text-align: center;
+            background: #7ec850;
+            border: 3px solid #3b2f1e;
+            box-shadow: inset 3px 3px 0 #9ae065, inset -3px -3px 0 #4a7a2e;
+            color: #ffffff;
+            padding: 14px;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #3a5a2f;
+            letter-spacing: 2px;
+            transition: all 0.1s;
+        }
+
+        .btn-mc:hover {
+            background: #8fd860;
+            box-shadow: inset 3px 3px 0 #b0f07a, inset -3px -3px 0 #5a8a3a;
+        }
+
+        .btn-mc:active {
+            transform: translateY(2px);
+            box-shadow: inset 1px 1px 0 #4a7a2e, inset -1px -1px 0 #9ae065;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .stat-num {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 0 #3a5a2f;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #ffe08a;
+            font-weight: bold;
+        }
+
+        .grass-footer {
+            text-align: center;
+            padding: 20px 16px;
+            background: rgba(126, 200, 80, 0.92);
+            border: 3px solid #3b2f1e;
+            box-shadow: inset 3px 3px 0 #9ae065, inset -3px -3px 0 #4a7a2e;
+            color: #1a3a0a;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* ========== 製作人區塊 ========== */
+        .maker-card {
+            background: rgba(200, 184, 154, 0.92);
+            border: 3px solid #3b2f1e;
+            box-shadow: 
+                inset 3px 3px 0 #e0d5c0,
+                inset -3px -3px 0 #8b7a5e;
+            padding: 18px;
+            margin: 14px 0;
+            color: #3b2f1e;
+            text-align: center;
+        }
+
+        .maker-avatar {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .maker-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #4a7a2e;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .social-btn {
+            background: #3b2f1e;
+            color: #ffe08a;
+            border: 2px solid #1a0f00;
+            padding: 8px 16px;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .social-btn:hover {
+            background: #5a4a2e;
+        }
+
+        .update-log {
+            font-size: 0.85em;
+            color: #6b5a3e;
+            margin-top: 8px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== MC 讀取畫面 ========== -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-dirt dirt-1"></div>
+        <div class="loading-dirt dirt-2"></div>
+        <div class="loading-dirt dirt-3"></div>
+        <div class="loading-dirt dirt-4"></div>
+        
+        <div class="loading-title">🌿 哭離怕 載入中...</div>
+        
+        <div class="loading-bar-outer">
+            <div class="loading-bar-inner" id="loadingBar"></div>
+        </div>
+        
+        <div class="loading-tip">正在生成世界...</div>
+    </div>
+
+    <!-- ========== 頁面內容 ========== -->
+    
+    <!-- 英雄區 -->
+    <div class="hero-block">
+        <span class="creeper-face">🌿💚</span>
+        <h1>哭離怕</h1>
+        <p class="subtitle">一隻可愛的 DC 機器人 · 苦力怕諧音</p>
+        <p style="color: #1a3a0a; margin-top: 6px; font-weight: bold;">
+            🌿 不會爆炸，只會在你的伺服器裡蹦蹦跳 🌿
+        </p>
+    </div>
+
+    <!-- 關於 -->
+    <div class="mc-block">
+        <h2>💚 這隻機器人是怎麼來的？</h2>
+        <p>
+            嗨大家好～我是這個機器人的製作者！
+        </p>
+        <p style="margin-top: 8px;">
+            有一天我跟朋友在 Discord 聊天，突然想到：
+            <span style="color:#4a7a2e; font-weight:bold;">「如果有一隻不會爆炸的苦力怕，在伺服器裡陪大家玩，一定很可愛吧？」</span>
+        </p>
+        <p style="margin-top: 8px;">
+            於是<span style="color:#8b6914; font-weight:bold;">哭離怕</span>就誕生了！名字就是 <strong>Creeper（苦力怕）</strong> 的諧音，
+            因為牠太愛哭，所以叫「哭」離怕 😭💚
+        </p>
+        <p style="margin-top: 8px;">
+            目前還在做中學、學中做，功能慢慢增加中～如果有 bug 或建議，歡迎直接跟我說！
+        </p>
+    </div>
+
+    <!-- 功能 -->
+    <div class="crafting-card">
+        <h2>✨ 目前有的功能</h2>
+        <div class="inventory-grid">
+            <div class="inv-slot">
+                <span class="inv-icon">💬</span>
+                自動回覆
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">🎮</span>
+                娛樂遊戲
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">🎫</span>
+                工單系統
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">⭐</span>
+                評價系統
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">🎉</span>
+                抽獎系統
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">💖</span>
+                加成感謝
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">👋</span>
+                歡迎成員
+            </div>
+            <div class="inv-slot">
+                <span class="inv-icon">🛡️</span>
+                伺服管理
+            </div>
+        </div>
+        <p style="margin-top: 12px; font-size: 0.9em; color: #6b5a3e; text-align: center;">
+            ⚠️ 功能還在慢慢新增中，敬請期待！
+        </p>
+    </div>
+
+    <!-- 指令 -->
+    <div class="crafting-card">
+        <h2>📋 指令列表 - 自動回覆</h2>
+        
+        <table class="cmd-table">
+            <thead>
+                <tr>
+                    <th>指令</th>
+                    <th>功能</th>
+                    <th>權限</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="cmd-name">/聊天-設定回覆</span></td>
+                    <td>在此頻道開啟自動回覆</td>
+                    <td><span class="perm-badge admin">管理員</span></td>
+                </tr>
+                <tr>
+                    <td><span class="cmd-name">/聊天-取消設定回覆</span></td>
+                    <td>關閉此頻道自動回覆</td>
+                    <td><span class="perm-badge admin">管理員</span></td>
+                </tr>
+                <tr>
+                    <td><span class="cmd-name">/聊天-狀態</span></td>
+                    <td>查看已開啟的頻道</td>
+                    <td><span class="perm-badge">所有人</span></td>
+                </tr>
+                <tr>
+                    <td><span class="cmd-name">🤖 自動回覆</span></td>
+                    <td>200+ 關鍵字自動回覆（可愛版）</td>
+                    <td><span class="perm-badge auto">自動</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 模擬對話 -->
+        <p style="margin-top: 14px; font-size: 0.9em; color: #ffe08a; font-weight: bold;">
+            💬 自動回覆示範
+        </p>
+        
+        <div class="chat-box">
+            <span class="player-name">🟢 小明：</span> 哭離怕你好可愛！<br>
+            <span class="bot-name">🤖 哭離怕：</span> 嗚嗚...你才可愛啦！！💚<br>
+            <span style="color:#8b8b8b; font-size:0.8em;">（觸發關鍵字：可愛）</span>
+        </div>
+
+        <div class="chat-box" style="margin-top: 6px;">
+            <span class="player-name">🟢 小明：</span> 今天好累喔...<br>
+            <span class="bot-name">🤖 哭離怕：</span> 辛苦了！來給哭離怕抱一個 🫂💚<br>
+            <span style="color:#8b8b8b; font-size:0.8em;">（觸發關鍵字：累）</span>
+        </div>
+    </div>
+
+    <!-- 數據 -->
+    <div class="crafting-card">
+        <h2>📊 機器人數據</h2>
+        <div class="stat-row">
+            <div>
+                <div class="stat-num">128+</div>
+                <div class="stat-label">伺服器數</div>
+            </div>
+            <div>
+                <div class="stat-num">3.2K</div>
+                <div class="stat-label">使用者</div>
+            </div>
+            <div>
+                <div class="stat-num">99.9%</div>
+                <div class="stat-label">上線率</div>
+            </div>
+        </div>
+        <p style="margin-top: 8px; font-size: 0.8em; color: #6b5a3e; text-align: center;">
+            📅 最後更新：2026 年 7 月
+        </p>
+    </div>
+
+    <!-- 邀請按鈕 -->
+    <a href="https://discord.com/oauth2/authorize?client_id=1502336962969735168&permissions=8&integration_type=0&scope=bot" class="btn-mc" target="_blank">
+        🔗 邀請哭離怕到你的伺服器
+    </a>
+    <p style="text-align:center; font-size:0.8em; color:#ffe08a; margin-top:6px;">
+        點擊按鈕就可以把哭離怕帶回家 💚
+    </p>
+
+    <!-- ========== 製作人區塊 ========== -->
+    <div class="maker-card">
+        <span class="maker-avatar">🧑‍💻</span>
+        <p class="maker-name">關於製作者</p>
+        <p style="font-size:0.9em; margin-top:4px;">
+            一個喜歡 Minecraft 的普通玩家<br>
+            學了一點程式，就試著做了一隻機器人
+        </p>
+        <p style="font-size:0.85em; color:#6b5a3e; margin-top:6px;">
+            想更認識我？來我的個人網站看看吧 👇
+        </p>
+        <div class="social-links">
+            <a href="https://hdhbslss.github.io/coldstar/" class="social-btn" target="_blank">🌐 個人網站</a>
+            <a href="https://discord.com/oauth2/authorize?client_id=1502336962969735168&permissions=8&integration_type=0&scope=bot" class="social-btn" target="_blank">💬 邀請機器人</a>
+        </div>
+        <p class="update-log">
+            「做這隻機器人純屬興趣，沒有營利～希望你們喜歡！」
+        </p>
+    </div>
+
+    <!-- 頁尾 -->
+    <div class="grass-footer">
+        🌿 哭離怕 Creeper Bot · 不會爆炸的可愛機器人<br>
+        永遠在你的伺服器裡等你回來 💚<br>
+        <span style="font-size:0.8em;">Made with ❤️ and a lot of sssSSSsss</span>
+    </div>
+
+    <!-- ========== 讀取完成後隱藏讀取畫面 ========== -->
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var loadingScreen = document.getElementById('loadingScreen');
+                loadingScreen.classList.add('hidden');
+            }, 2800);
+        });
+    </script>
+
+</body>
+</html>
